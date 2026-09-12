@@ -1,0 +1,69 @@
+rules_version = '2';
+
+// 관리자(admin) / 뷰어(viewer) 두 등급으로 권한을 나눈다.
+// - admin: 모든 걸 보고 설정을 바꿀 수 있음
+// - viewer: 상태만 볼 수 있고 아무것도 바꿀 수 없음
+//
+// 계정별 등급은 users/{uid} 문서의 role 필드로 관리한다.
+// (새 사용자를 만든 뒤 Firebase 콘솔 > Firestore Database에서
+//  users 컬렉션에 그 사용자의 UID로 문서를 만들고 role: "viewer"를 입력하면 됨.
+//  자세한 절차는 firebase/README.md "뷰어(읽기 전용) 계정 추가하기" 참고)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function myRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function isAdmin() { return signedIn() && myRole() == 'admin'; }
+    // role 문서가 아직 없으면(막 만든 계정) 안전하게 viewer 취급
+    function isViewer() { return signedIn(); }
+
+    match /users/{uid} {
+      // 본인 등급만 조회 가능. 등급 변경은 앱에서 직접 불가 (commands로 요청 -> 라즈베리파이가 처리)
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // 계정 목록(이메일/현재 권한) - 라즈베리파이가 firebase-admin으로 올림, 앱은 읽기만
+    match /accounts/{uid} {
+      allow read: if isViewer();
+      allow write: if false;
+    }
+
+    match /devices/{mac} {
+      allow read: if isViewer();
+      allow write: if isAdmin();
+    }
+
+    match /events/{eventId} {
+      allow read: if isViewer();
+      allow write: if isAdmin();
+    }
+
+    match /blocklist/{domain} {
+      allow read: if isViewer();
+      allow write: if isAdmin();
+    }
+
+    match /whitelist/{mac} {
+      allow read: if isViewer();
+      allow write: if isAdmin();
+    }
+
+    match /wifi_status/{docId} {
+      allow read: if isViewer();
+      allow write: if isAdmin();
+    }
+
+    match /routers/{routerId} {
+      allow read: if isViewer();
+      allow write: if isAdmin();
+    }
+
+    match /commands/{commandId} {
+      allow read: if isViewer();
+      allow write: if isAdmin();
+    }
+  }
+}

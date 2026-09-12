@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>교회 네트워크 관리</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <meta http-equiv="refresh" content="30">
+</head>
+<body>
+  <header>
+    <h1>교회 네트워크 관리 시스템</h1>
+    <div class="summary">현재 접속 중: <strong>{{ online_count }}</strong> / 전체 기록 {{ total_count }}대</div>
+  </header>
+
+  {% for group in groups %}
+  <section class="card router-group">
+    <div class="router-header">
+      <h2>📡 {{ group.label }} <span class="router-sub">({{ group.devices | selectattr('is_online') | list | length }}대 접속중)</span></h2>
+      <form method="post" action="/router/rename" class="alias-form">
+        <input type="hidden" name="router_id" value="{{ group.router_id }}">
+        <input type="text" name="label" placeholder="예: 청소년부실" value="{{ group.label }}">
+        <button type="submit">이름 저장</button>
+      </form>
+    </div>
+
+    {% if wifi_errors.get(group.router_id) %}
+      <p class="error">{{ wifi_errors[group.router_id] }}</p>
+    {% elif wifi_statuses.get(group.router_id) %}
+      {% set wifi = wifi_statuses[group.router_id] %}
+      <div class="wifi-inline">
+        Wi-Fi: {{ "🟢" if wifi.wifi_2g or wifi.wifi_5g else "⚪" }}
+        게스트: {{ "켜짐" if wifi.guest_2g else "꺼짐" }}
+        <form method="post" action="/wifi/guest/{{ group.router_id }}/2g/{{ 'off' if wifi.guest_2g else 'on' }}" style="display:inline;">
+          <button type="submit">게스트 {{ "끄기" if wifi.guest_2g else "켜기" }}</button>
+        </form>
+        <form method="post" action="/router/{{ group.router_id }}/reboot" style="display:inline;"
+              onsubmit="return confirm('{{ group.label }} 공유기를 재부팅할까요?');">
+          <button type="submit" class="danger">재부팅</button>
+        </form>
+      </div>
+    {% endif %}
+
+    <table class="device-table">
+      <thead>
+        <tr>
+          <th>상태</th>
+          <th>단말명</th>
+          <th>IP</th>
+          <th>MAC</th>
+          <th>지연시간</th>
+          <th>승인상태</th>
+          <th>단말명 수정</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in group.devices %}
+        <tr class="{{ 'online' if d.is_online else 'offline' }}">
+          <td>{{ "🟢 접속중" if d.is_online else "⚪ 오프라인" }}</td>
+          <td>{{ d.alias or d.hostname or "(이름 없음)" }}</td>
+          <td>{{ d.ip }}</td>
+          <td class="mac">{{ d.mac }}</td>
+          <td>{{ (d.latency_ms ~ " ms") if d.latency_ms is not none else "-" }}</td>
+          <td>
+            <form method="post" action="/device/approve">
+              <input type="hidden" name="mac" value="{{ d.mac }}">
+              <input type="hidden" name="approved" value="{{ 0 if d.approved else 1 }}">
+              <button type="submit" class="{{ 'approved' if d.approved else 'unapproved' }}">
+                {{ "✅ 승인됨" if d.approved else "🚫 미승인 (클릭해 승인)" }}
+              </button>
+            </form>
+          </td>
+          <td>
+            <form method="post" action="/alias" class="alias-form">
+              <input type="hidden" name="mac" value="{{ d.mac }}">
+              <input type="text" name="alias" placeholder="예: 목양실 노트북" value="{{ d.alias or '' }}">
+              <button type="submit">저장</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endfor %}
+
+  <p class="note">
+    {% if any_openwrt %}
+    ※ '승인상태'를 클릭하면 OpenWrt 공유기에 즉시 반영됩니다 — 미승인 기기는
+    실제로 인터넷 접속이 차단됩니다 (고정 IP를 직접 넣어도 우회 불가).
+    {% else %}
+    ※ 지금은 스캔 모드(읽기 전용)입니다. '승인상태' 클릭은 기록만 남기고,
+    실제로 인터넷을 막지는 못합니다. OpenWrt 전환 후 자동으로 실제 차단이 켜집니다.
+    {% endif %}
+  </p>
+
+  <section class="card">
+    <h2>사이트 차단 (네트워크 전체)</h2>
+    {% if pihole_status is none %}
+      <p class="error">Pi-hole에 연결할 수 없습니다. config.yaml의 pihole 설정을 확인하거나,
+      아직 설치 전이라면 README의 "사이트 차단 - Pi-hole 설정" 절을 참고하세요.</p>
+    {% else %}
+      <form method="post" action="/blocklist/add" class="alias-form">
+        <input type="text" name="domain" placeholder="예: youtube.com" required>
+        <button type="submit">차단 추가</button>
+      </form>
+      <ul class="events">
+        {% for d in blocked_domains %}
+        <li>
+          {{ d }}
+          <form method="post" action="/blocklist/remove" style="display:inline;">
+            <input type="hidden" name="domain" value="{{ d }}">
+            <button type="submit" class="danger" style="margin-top:0;">해제</button>
+          </form>
+        </li>
+        {% else %}
+        <li>차단 중인 사이트가 없습니다.</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>허용 기기 화이트리스트 (메인 공유기용)</h2>
+    <p class="note">{{ main_router_note }}</p>
+    <form method="post" action="/whitelist/add" class="alias-form">
+      <input type="text" name="mac" placeholder="MAC 주소" required>
+      <input type="text" name="label" placeholder="기기 설명 (예: 1실 PC)">
+      <button type="submit">추가</button>
+    </form>
+    <table class="device-table">
+      <thead><tr><th>MAC</th><th>설명</th><th></th></tr></thead>
+      <tbody>
+        {% for w in whitelist %}
+        <tr>
+          <td>{{ w.mac }}</td>
+          <td>{{ w.label }}</td>
+          <td>
+            <form method="post" action="/whitelist/remove">
+              <input type="hidden" name="mac" value="{{ w.mac }}">
+              <button type="submit" class="danger" style="margin-top:0;">삭제</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>최근 접속/해제 기록</h2>
+    <ul class="events">
+      {% for e in events %}
+      <li>
+        <span data-ts="{{ e.ts }}" class="ts"></span>
+        — {{ e.alias or e.hostname or e.mac }}
+        {{ "접속함" if e.event == "online" else "접속 해제됨" }}
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <script>
+    document.querySelectorAll(".ts").forEach(el => {
+      const ts = parseInt(el.dataset.ts, 10);
+      if (ts) {
+        el.textContent = new Date(ts * 1000).toLocaleString("ko-KR");
+      }
+    });
+  </script>
+</body>
+</html>

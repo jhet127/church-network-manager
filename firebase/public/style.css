@@ -1,0 +1,242 @@
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  background: #eef1f6;
+  color: #1e2230;
+  margin: 0;
+}
+.screen { min-height: 100vh; }
+#login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #eef1f6 0%, #dde5f3 100%);
+}
+.login-box {
+  background: white;
+  padding: 36px 32px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 320px;
+  box-shadow: 0 8px 24px rgba(37,99,235,0.08);
+  text-align: center;
+}
+.logo-mark { margin-bottom: 14px; }
+.login-box h1 { font-size: 18px; margin: 0 0 20px 0; color: #1e2230; }
+.login-box input {
+  width: 100%;
+  padding: 11px;
+  margin-bottom: 10px;
+  border: 1px solid #e2e6ee;
+  border-radius: 9px;
+  font-size: 13px;
+}
+.login-box button { width: 100%; padding: 11px; font-weight: 600; }
+
+/* ------------------------------------------------------------------ */
+/* 반응형 레이아웃: 휴대폰에서는 1열, 화면이 넓어지면 자동으로 여러 열 */
+/* ------------------------------------------------------------------ */
+#dashboard-screen {
+  padding: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+#main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 720px) {
+  #main-grid {
+    grid-template-columns: 1.4fr 1fr;
+  }
+  #main-grid .card:first-child { grid-row: span 2; }
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand h1 { font-size: 17px; margin: 0; color: #1e2230; }
+.role-badge {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.role-badge.admin { background: #e0f2e9; color: #16a34a; }
+.role-badge.viewer { background: #eef1f6; color: #64748b; }
+body.role-viewer .admin-only { display: none !important; }
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.icon-btn {
+  background: white;
+  border: 1px solid #ddd;
+  color: #444;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.icon-btn:hover { background: #f0f0f0; }
+
+.settings-wrap { position: relative; }
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 42px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  overflow: hidden;
+  z-index: 20;
+  min-width: 140px;
+}
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: white;
+  color: #222;
+  border: none;
+  padding: 10px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 0;
+}
+.dropdown-menu button:hover { background: #f4f5f7; }
+
+.last-updated {
+  font-size: 11px;
+  color: #999;
+  margin: 0 0 14px 0;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  height: fit-content;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.card h2 { font-size: 15px; margin: 0 0 10px 0; }
+table { width: 100%; font-size: 12px; border-collapse: collapse; }
+th { text-align: left; color: #999; font-weight: 400; padding: 4px; }
+td { padding: 6px 4px; border-bottom: 1px solid #eee; }
+tr.offline td { color: #999; }
+td.mac { color: #bbb; font-size: 10px; }
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+button.ghost { background: transparent; color: #666; }
+.row { display: flex; gap: 8px; margin-bottom: 10px; }
+.row input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+ul { list-style: none; padding: 0; margin: 0; font-size: 13px; }
+li {
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.error { color: #dc2626; font-size: 13px; }
+.empty { color: #999; font-size: 13px; }
+
+.router-group {
+  border-left: 3px solid #2563eb;
+  background: #fafafa;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.router-header { margin-bottom: 6px; font-size: 13px; }
+.router-header .row input { font-size: 12px; padding: 5px 8px; }
+.router-header .row button { font-size: 12px; padding: 5px 10px; }
+.approve-btn { font-size: 11px; padding: 4px 8px; }
+.approve-btn.approved { background: #16a34a; }
+.approve-btn.unapproved { background: #dc2626; }
+
+/* ------------------------------------------------------------------ */
+/* 설정 모달 */
+/* ------------------------------------------------------------------ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  padding: 16px;
+}
+.modal-overlay[hidden] { display: none; }
+.modal-box {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  width: 100%;
+  max-width: 360px;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.modal-header h2 { font-size: 16px; margin: 0; }
+.modal-section { margin-bottom: 18px; }
+.modal-section label {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 6px;
+}
+.account-email { font-size: 14px; margin: 0; }
+.modal-section select,
+.modal-section input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.modal-hint { font-size: 11px; color: #999; margin: 6px 0 0 0; }
+#settings-done-btn { width: 100%; }
+
+.account-list { font-size: 13px; }
+.account-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.account-row .email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px; }
+.account-row label { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #666; white-space: nowrap; }

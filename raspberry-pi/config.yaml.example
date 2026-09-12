@@ -1,0 +1,43 @@
+# 교회 네트워크 통합 관리 시스템 - 설정 파일
+# 실제 값으로 수정한 뒤 사용하세요.
+
+# 공유기를 등록합니다. 각 항목의 'mode' 값으로 동작 방식이 결정됩니다.
+#
+#   mode: "scan"    → 공유기를 전혀 건드리지 않고, 같은 네트워크의 ARP 테이블만 읽어서
+#                      "누가 접속해 있는지" 확인합니다. 지금 당장, 어떤 공유기든 안전하게
+#                      쓸 수 있지만 승인/차단 같은 제어 기능은 동작하지 않습니다 (읽기 전용).
+#   mode: "openwrt" → 공유기가 OpenWrt로 바뀐 뒤, SSH로 실제 제어(승인/차단, Wi-Fi on/off,
+#                      재부팅)까지 합니다. host/username/password가 필요합니다.
+#
+# 지금은 scan 모드로 시작하고, 나중에 OpenWrt 설치가 끝나면 mode만 "openwrt"로
+# 바꾸고 host/username/password를 채우면 됩니다 (코드 수정 필요 없음).
+routers:
+  - id: "main"
+    label: "메인 공유기"
+    mode: "scan"
+    # openwrt 모드로 바꿀 때 아래를 채우세요:
+    # host: "192.168.1.1"
+    # username: "root"
+    # password: "여기에_OpenWrt_root_비밀번호"
+    # port: 22
+
+polling:
+  interval_seconds: 30
+  measure_latency: true
+
+database:
+  path: "data/network.db"
+
+pihole:
+  base_url: "http://127.0.0.1"
+  password: "여기에_Pi-hole_관리자_비밀번호"
+
+firebase:
+  enabled: false
+  service_account_path: "serviceAccountKey.json"
+
+access_control:
+  main_router_note: "지금은 스캔 모드(읽기 전용)입니다. OpenWrt 전환 후 승인/차단이 실제로 적용됩니다."
+
+device_aliases:
+  # "AA:BB:CC:DD:EE:FF": "1층 데스크탑"

@@ -1,0 +1,23 @@
+# 비밀번호/키가 담긴 파일 - 절대 커밋하지 말 것
+raspberry-pi/config.yaml
+raspberry-pi/serviceAccountKey.json
+firebase/.firebaserc
+
+# 데이터베이스 / 로그
+raspberry-pi/data/
+*.db
+*.log
+
+# 파이썬
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Firebase / Node
+firebase/node_modules/
+firebase/.firebase/
+firebase-debug.log
+
+# OS
+.DS_Store

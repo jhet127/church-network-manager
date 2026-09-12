@@ -1,0 +1,14 @@
+[Unit]
+Description=Church Network Manager - Router Poller
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/church-network-manager
+ExecStart=/home/pi/church-network-manager/venv/bin/python -m app.collector
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -5,8 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/church-network-manager
-ExecStart=/home/pi/church-network-manager/venv/bin/python -m app.collector
+WorkingDirectory=/home/pi/church-network-manager/raspberry-pi
+ExecStart=/home/pi/church-network-manager/raspberry-pi/venv/bin/python -m app.collector
 Restart=on-failure
 RestartSec=5
 

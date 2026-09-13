@@ -33,9 +33,6 @@ body {
 }
 .login-box button { width: 100%; padding: 11px; font-weight: 600; }
 
-/* ------------------------------------------------------------------ */
-/* 반응형 레이아웃: 휴대폰에서는 1열, 화면이 넓어지면 자동으로 여러 열 */
-/* ------------------------------------------------------------------ */
 #dashboard-screen {
   padding: 16px;
   max-width: 1100px;
@@ -179,12 +176,12 @@ li {
 .router-header .row input { font-size: 12px; padding: 5px 8px; }
 .router-header .row button { font-size: 12px; padding: 5px 10px; }
 .approve-btn { font-size: 11px; padding: 4px 8px; }
+.name-cell { display: flex; align-items: center; gap: 4px; }
+.alias-input { font-size: 11px; padding: 3px 5px; width: 90px; border: 1px solid #ddd; border-radius: 6px; }
+.alias-save-btn { font-size: 10px; padding: 3px 6px; }
 .approve-btn.approved { background: #16a34a; }
 .approve-btn.unapproved { background: #dc2626; }
 
-/* ------------------------------------------------------------------ */
-/* 설정 모달 */
-/* ------------------------------------------------------------------ */
 .modal-overlay {
   position: fixed;
   inset: 0;

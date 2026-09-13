@@ -4,9 +4,7 @@
 // Firebase 콘솔 > 프로젝트 설정 > 일반 > 내 앱 > SDK 설정 및 구성 에서 복사할 수 있습니다.
 //
 // 데이터는 실시간 스트리밍이 아니라, 새로고침 버튼 또는 자동 새로고침 주기(10~30초)에
-// 맞춰 그때그때 한 번씩 불러오는 방식입니다. 공유기 20대·기기 50대 규모에서는
-// 어느 쪽이든 트래픽 차이가 크지 않지만, 데이터 사용량을 사용자가 직접 통제할 수 있도록
-// 이 방식을 사용합니다.
+// 맞춰 그때그때 한 번씩 불러오는 방식입니다.
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
@@ -62,7 +60,7 @@ onAuthStateChanged(auth, async (user) => {
       const roleDoc = await getDoc(doc(db, "users", user.uid));
       isAdmin = roleDoc.exists() && roleDoc.data().role === "admin";
     } catch (e) {
-      isAdmin = false; // 등급 조회 실패 시 안전하게 읽기 전용으로 취급
+      isAdmin = false;
     }
     $("role-badge").textContent = isAdmin ? "관리자" : "보기 전용";
     $("role-badge").className = isAdmin ? "role-badge admin" : "role-badge viewer";
@@ -90,9 +88,7 @@ $("settings-close-btn").addEventListener("click", () => { $("settings-modal").hi
 $("settings-done-btn").addEventListener("click", () => { $("settings-modal").hidden = true; });
 
 // ---------------------------------------------------------------------
-// 계정 관리 (관리자 전용) — 라즈베리파이가 올려주는 'accounts' 컬렉션을 읽고,
-// 권한 변경은 'commands'에 요청을 남기면 라즈베리파이가 처리한다.
-// (라즈베리파이 연동 전에는 목록이 비어있는 게 정상입니다.)
+// 계정 관리 (관리자 전용)
 // ---------------------------------------------------------------------
 async function loadAccountList() {
   const el = $("account-list");
@@ -154,7 +150,6 @@ $("change-password-btn").addEventListener("click", async () => {
 
   try {
     const user = auth.currentUser;
-    // 보안을 위해 비밀번호를 바꾸기 전, 현재 비밀번호로 다시 한 번 본인 확인을 한다.
     const credential = EmailAuthProvider.credential(user.email, currentPassword);
     await reauthenticateWithCredential(user, credential);
     await updatePassword(user, newPassword);
@@ -194,8 +189,8 @@ $("auto-refresh-select").addEventListener("change", startAutoRefresh);
 // ---------------------------------------------------------------------
 // 데이터 한 번에 불러오기 (Firestore)
 // ---------------------------------------------------------------------
-let routerLabels = {};   // { router_id: label }
-let allDevices = [];     // 최근 devices 조회 결과
+let routerLabels = {};
+let allDevices = [];
 
 async function fetchAll() {
   $("refresh-btn").disabled = true;
@@ -275,10 +270,14 @@ function renderDeviceGroups() {
         : `<span class="approve-badge ${approved ? "approved" : "unapproved"}">
               ${approved ? "✅ 승인됨" : "🚫 미승인"}
             </span>`;
+      const nameCell = isAdmin
+        ? `<input type="text" class="alias-input" data-mac="${d.mac}" value="${name}">
+           <button class="alias-save-btn" data-mac="${d.mac}">저장</button>`
+        : name;
       return `
         <tr class="${d.is_online ? "online" : "offline"}">
           <td>${d.is_online ? "🟢" : "⚪"}</td>
-          <td>${name}</td>
+          <td class="name-cell">${nameCell}</td>
           <td>${d.ip || ""}</td>
           <td class="mac">${d.mac}</td>
           <td>${latency}</td>
@@ -311,7 +310,7 @@ function renderDeviceGroups() {
   $("device-groups").innerHTML = html;
   $("online-count").textContent = onlineCount;
 
-  if (!isAdmin) return; // 뷰어는 조작 버튼이 없으므로 아래 이벤트 연결 불필요
+  if (!isAdmin) return;
 
   document.querySelectorAll(".approve-btn").forEach((btn) => {
     btn.addEventListener("click", async () => {
@@ -319,6 +318,18 @@ function renderDeviceGroups() {
       const nextApproved = btn.dataset.next === "1";
       await setDoc(doc(db, "devices", mac), { approved: nextApproved }, { merge: true });
       await sendCommand("set_approved", { mac, approved: nextApproved });
+      fetchDevices();
+    });
+  });
+
+  document.querySelectorAll(".alias-save-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const mac = btn.dataset.mac;
+      const input = document.querySelector(`.alias-input[data-mac="${mac}"]`);
+      const alias = input.value.trim();
+      if (!alias) return;
+      await setDoc(doc(db, "devices", mac), { alias }, { merge: true });
+      await sendCommand("set_alias", { mac, alias });
       fetchDevices();
     });
   });

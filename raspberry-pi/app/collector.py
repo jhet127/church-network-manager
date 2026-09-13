@@ -30,7 +30,6 @@ def poll_one_router(router_id: str, router: RouterClient, db: Database,
                                           d.hostname, int(time.time()))
             if d.is_online and measure_latency:
                 db.set_latency(d.mac, ping_ms(d.ip))
-            # 공유기의 실제 허용 목록 상태를 DB에도 동기화 (관리 페이지에서 직접 바꿨을 경우 대비)
             db.set_approved(d.mac, d.mac.upper() in approved_macs)
 
         db.mark_all_offline_except({d.mac for d in devices if d.is_online})
@@ -96,6 +95,9 @@ def process_commands(routers: dict[str, RouterClient], pihole: PiholeClient,
                     )
             elif cmd_type == "rename_router":
                 db.rename_router(payload.get("router_id", ""), payload.get("label", ""))
+                firebase_sync.mark_command_done(cmd_id, True)
+            elif cmd_type == "set_alias":
+                db.set_alias(payload.get("mac", ""), payload.get("alias", ""))
                 firebase_sync.mark_command_done(cmd_id, True)
             elif cmd_type == "set_account_role":
                 firebase_sync.set_account_role(
